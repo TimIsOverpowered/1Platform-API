@@ -1,13 +1,28 @@
 /* eslint-disable no-console */
-const logger = require('./logger');
-const app = require('./app');
-const port = app.get('port');
+const logger = require("./logger");
+const app = require("./app");
+const port = app.get("port");
 const server = app.listen(port);
+const { createClient } = require("redis");
 
-process.on('unhandledRejection', (reason, p) =>
-  logger.error('Unhandled Rejection at: Promise ', p, reason)
+process.on("unhandledRejection", (reason, p) =>
+  logger.error("Unhandled Rejection at: Promise ", p, reason)
 );
 
-server.on('listening', () =>
-  logger.info('Feathers application started on http://%s:%d', app.get('host'), port)
+server.on("listening", () =>
+  logger.info(
+    "Feathers application started on http://%s:%d",
+    app.get("host"),
+    port
+  )
 );
+
+(async () => {
+  const client = createClient();
+
+  client.on("error", (err) => console.log("Redis Client Error", err));
+
+  await client.connect();
+
+  app.redisClient = client;
+})();
